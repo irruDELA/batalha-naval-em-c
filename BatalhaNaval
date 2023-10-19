@@ -1,0 +1,130 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h> // Para gerar números aleatórios
+
+#define BOARD_SIZE 10
+
+struct Ship {
+    int size;
+    char symbol;
+};
+
+void initializeBoard(char board[BOARD_SIZE][BOARD_SIZE]) {
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            board[i][j] = ' ';
+        }
+    }
+}
+
+void printBoard(char board[BOARD_SIZE][BOARD_SIZE]) {
+    printf("  A B C D E F G H I J\n");
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        printf("%d ", i);
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            printf("%c ", board[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void placeShips(char board[BOARD_SIZE][BOARD_SIZE], struct Ship ships[]) {
+    for (int i = 0; i < 2; i++) { // Loop para ambos os jogadores
+        printf("Jogador %d, posicione seus navios:\n", i + 1);
+        for (int j = 0; j < 2; j++) { // Loop para posicionar dois navios
+            int x, y, orientation;
+            char shipSymbol = ships[j].symbol;
+            printf("Informe a posição (ex: A0) para o navio %c (tamanho %d): ", shipSymbol, ships[j].size);
+            scanf(" %c%d", &x, &y);
+            x = x - 'A'; // Converte a letra para a coordenada da matriz
+            // Implemente a lógica para posicionar os navios
+            if (board[x][y] == ' ') {
+                board[x][y] = shipSymbol;
+            } else {
+                printf("Posição ocupada. Tente novamente.\n");
+                j--; // Reverta a iteração para tentar novamente
+            }
+        }
+    }
+}
+
+int isHit(char board[BOARD_SIZE][BOARD_SIZE], int x, int y) {
+    if (board[x][y] != ' ') {
+        return 1; // Acertou
+    }
+    return 0; // Erro
+}
+
+void recordShot(char board[BOARD_SIZE][BOARD_SIZE], int x, int y, int isHit) {
+    if (isHit) {
+        board[x][y] = 'X'; // Acerto
+    } else {
+        board[x][y] = 'O'; // Erro
+    }
+}
+
+int checkVictory(char board[BOARD_SIZE][BOARD_SIZE]) {
+    int shipsRemaining = 0;
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (board[i][j] != ' ' && board[i][j] != 'X' && board[i][j] != 'O') {
+                shipsRemaining = 1;
+            }
+        }
+    }
+    return !shipsRemaining;
+}
+
+int main() {
+    char player1Board[BOARD_SIZE][BOARD_SIZE];
+    char player2Board[BOARD_SIZE][BOARD_SIZE];
+
+    struct Ship ships[] = {
+        {5, 'A'},
+        {4, 'B'},
+    };
+
+    initializeBoard(player1Board);
+    initializeBoard(player2Board);
+
+    placeShips(player1Board, ships);
+    placeShips(player2Board, ships);
+
+    int player1Turn = 1;
+    int player2Turn = 0;
+
+    while (1) {
+        char (*currentPlayerBoard)[BOARD_SIZE];
+        char (*opponentPlayerBoard)[BOARD_SIZE];
+
+        if (player1Turn) {
+            player1Turn = 0;
+            player2Turn = 1;
+            currentPlayerBoard = player1Board;
+            opponentPlayerBoard = player2Board;
+        } else {
+            player1Turn = 1;
+            player2Turn = 0;
+            currentPlayerBoard = player2Board;
+            opponentPlayerBoard = player1Board;
+        }
+
+        printf("Tabuleiro do Jogador %d:\n", (player1Turn == 1) ? 1 : 2);
+        printBoard(currentPlayerBoard);
+
+        int x, y;
+        printf("Informe as coordenadas do tiro (ex: A0): ");
+        scanf(" %c%d", &x, &y);
+        x = x - 'A'; // Converte a letra para a coordenada da matriz
+        int isShotHit = isHit(opponentPlayerBoard, x, y);
+
+        recordShot(currentPlayerBoard, x, y, isShotHit);
+
+        if (checkVictory(opponentPlayerBoard)) {
+            printf("Jogador %d venceu!\n", (player1Turn == 1) ? 1 : 2);
+            break;
+        }
+    }
+
+    return 0;
+}
